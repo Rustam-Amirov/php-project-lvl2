@@ -1,5 +1,18 @@
 <?php
+/**
+ * Short description
+ *
+ * Php version 7.4
+ *
+ * @category Components
+ * @package  Learning_Project
+ * @author   Rustam-Amirov <r.amirov@yahoo.com>
+ * @license  https://mit-license.org MIT
+ * @link     https://github.com/Rustam-Amirov/php-project-lvl2
+ */  
+
 require_once __DIR__.'/../vendor/docopt/docopt/src/docopt.php';
+
 $doc = <<<DOC
 Usage: my_program.php [-hso FILE] [--quiet | --verbose] [INPUT ...]
 
@@ -24,8 +37,6 @@ $params = array(
 );
 $args = Docopt::handle($doc, $params);
 // long form, full API
-$handler = new \Docopt\Handler(array(
-    'help'=>true,
-    'optionsFirst'=>false,
-));
+$handler = new \Docopt\Handler(array('help'=>true, 'optionsFirst'=>false ));
+$argv = (isset($argv)) ? $argv : '';
 $handler->handle($doc, $argv);
