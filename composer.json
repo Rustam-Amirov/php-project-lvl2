@@ -1,6 +1,8 @@
 {
     "name": "rustam/php-project-lvl2",
+	"bin": ["bin/gendiff"],
     "license": "MIT",
+	"description": "hexlet php-package",
     "authors": [
         {
             "name": "Rustam Amirov",
@@ -9,7 +11,8 @@
     ],
 	"scripts": {
 		"phpcs": "phpcs",
-		"phpcbf": "phpcbf"
+		"phpcbf": "phpcbf",
+		"psysh": "physh"
 	},
 	"autoload":{"files":["src/docopt.php"]},
     "require": {
