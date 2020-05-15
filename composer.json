@@ -1,0 +1,20 @@
+{
+    "name": "rustam/php-project-lvl2",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Rustam Amirov",
+            "email": "r.amirov@yahoo.com"
+        }
+    ],
+	"scripts": {
+		"phpcs": "phpcs"
+	},
+	"autoload":{"files":["src/docopt.php"]},
+    "require": {
+        "docopt/docopt": "^1.0"
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^3.5"
+    }
+}
