@@ -14,9 +14,15 @@
 		"phpcbf": "phpcbf",
 		"psysh": "physh"
 	},
-	"autoload":{"files":["src/docopt.php"]},
+	"autoload":{
+        "files":[
+            "src/Docopt.php",
+            "src/GenDiff.php"
+        ]
+    },
     "require": {
-        "docopt/docopt": "^1.0"
+        "docopt/docopt": "^1.0",
+        "funct/funct": "^1.5"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "^3.5"
