@@ -3,7 +3,7 @@ install:
 console:
 	composer run-script psysh
 lint:
-	composer phpcs src 
+	composer run-script phpcs src 
 lint-fix:
 	composer run-script phpcbf -- --standard=PSR12 src tests 
 test:
