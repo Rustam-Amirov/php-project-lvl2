@@ -21,6 +21,5 @@ Options:
   -v --version                  Show version
   --format <fmt>                Report format [default: pretty]
 DOC;
-
     genDiff(\Docopt::handle($doc, ['version' => 'v0.01']));
 }
