@@ -2,7 +2,6 @@
 
 namespace Differ\Docopt;
 
-require_once __DIR__ . '/../vendor/docopt/docopt/src/docopt.php';
 use function Differ\GenDiff\genDiff;
 
 function docopt()
