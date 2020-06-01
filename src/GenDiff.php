@@ -6,19 +6,13 @@ use function Funct\Collection\flattenAll;
 
 function genDiff($request, $secondPathToFile = false)
 {
-    if (file_exists(__DIR__ . '/' . $request['<firstFile>']) && file_exists(__DIR__ . '/' . $request['<secondFile>'])) {
-        $firstFile = json_decode(file_get_contents(__DIR__ . '/' . $request['<firstFile>']), true);
-        $secondFile = json_decode(file_get_contents(__DIR__ . '/' . $request['<secondFile>']), true);
-    } elseif (file_exists(__DIR__ . '/' . $request) && file_exists(__DIR__ . '/' . $secondPathToFile)) {
-        $firstFile = json_decode(file_get_contents(__DIR__ . '/' . $request), true);
-        $secondFile = json_decode(file_get_contents(__DIR__ . '/' . $secondPathToFile), true);
+    if ($secondPathToFile) {
+        [$firstFile, $secondFile] = getDataFiles($request, $secondPathToFile);
     } else {
-        echo 'Error';
+        [$firstFile, $secondFile] = getDataFiles($request['<firstFile>'], $request['<secondFile>']);
     }
-    
     $keys = [array_keys($firstFile), array_keys($secondFile)];
-
-    $string = array_reduce(array_unique(flattenAll($keys)), function ($acc, $key) use ($firstFile, $secondFile) {
+    $result = array_reduce(array_unique(flattenAll($keys)), function ($acc, $key) use ($firstFile, $secondFile) {
         if (isset($firstFile[$key]) && isset($secondFile[$key])) {
             if ($secondFile[$key] === $firstFile[$key]) {
                 $acc = $acc . stringify($key, $secondFile[$key]);
@@ -33,7 +27,7 @@ function genDiff($request, $secondPathToFile = false)
         }
         return $acc;
     }, "");
-        printResult($string);
+    printResult($result);
 }
 
 function stringify($key, $value, $prefix = ' ')
@@ -52,4 +46,18 @@ function stringify($key, $value, $prefix = ' ')
 function printResult($result)
 {
     echo("{\n$result}\n");
+}
+
+function getDataFiles($firstPathToFile, $secondPathToFile)
+{
+    if (file_exists($secondPathToFile) && file_exists(($firstPathToFile))) {
+        $firstFile = json_decode(file_get_contents($firstPathToFile), true);
+        $secondFile = json_decode(file_get_contents($secondPathToFile), true);
+    } elseif (file_exists(__DIR__ . '/' . $firstPathToFile) && file_exists(__DIR__ . '/' . $secondPathToFile)) {
+        $firstFile = json_decode(file_get_contents(__DIR__ . '/' . $firstPathToFile), true);
+        $secondFile = json_decode(file_get_contents(__DIR__ . '/' . $secondPathToFile), true);
+    } else {
+        return false;
+    }
+    return  [$firstFile, $secondFile];
 }
