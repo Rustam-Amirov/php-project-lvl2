@@ -2,33 +2,36 @@
 
 namespace Differ\GenDiff;
 
+use Symfony\Component\Yaml\Yaml;
+
 use function Funct\Collection\flattenAll;
 
 function genDiff($request, $secondPathToFile = false)
 {
     if ($secondPathToFile) {
-        [$firstFile, $secondFile] = getDataFiles($request, $secondPathToFile);
+        [$firstData, $secondData] = getDataFiles($request, $secondPathToFile);
     } else {
-        [$firstFile, $secondFile] = getDataFiles($request['<firstFile>'], $request['<secondFile>']);
+        [$firstData, $secondData] = getDataFiles($request['<firstFile>'], $request['<secondFile>']);
     }
-    $keys = [array_keys($firstFile), array_keys($secondFile)];
-    $result = array_reduce(array_unique(flattenAll($keys)), function ($acc, $key) use ($firstFile, $secondFile) {
-        if (isset($firstFile[$key]) && isset($secondFile[$key])) {
-            if ($secondFile[$key] === $firstFile[$key]) {
-                $acc = $acc . stringify($key, $secondFile[$key]);
+    $keys = [array_keys((array)$firstData), array_keys((array)$secondData)];
+    $result = array_reduce(array_unique(flattenAll($keys)), function ($acc, $key) use ($firstData, $secondData) {
+        if (isset($firstData->$key) && isset($secondData->$key)) {
+            if ($secondData->$key === $firstData->$key) {
+                $acc = $acc . stringify($key, $secondData->$key);
             } else {
-                $acc = $acc . stringify($key, $secondFile[$key], '-');
-                $acc = $acc . stringify($key, $firstFile[$key], '+');
+                $acc = $acc . stringify($key, $secondData->$key, '-');
+                $acc = $acc . stringify($key, $firstData->$key, '+');
             }
-        } elseif (isset($secondFile[$key])) {
-            $acc = $acc . stringify($key, $secondFile[$key], '-');
+        } elseif (isset($secondData->$key)) {
+            $acc = $acc . stringify($key, $secondData->$key, '-');
         } else {
-            $acc = $acc . stringify($key, $firstFile[$key], '+');
+            $acc = $acc . stringify($key, $firstData->$key, '+');
         }
         return $acc;
     }, "");
-    printResult($result);
+    return "{\n$result}\n";
 }
+
 
 function stringify($key, $value, $prefix = ' ')
 {
@@ -43,21 +46,36 @@ function stringify($key, $value, $prefix = ' ')
     }
 }
 
-function printResult($result)
-{
-    echo("{\n$result}\n");
-}
 
 function getDataFiles($firstPathToFile, $secondPathToFile)
 {
+    $getData = getParser($firstPathToFile);
     if (file_exists($secondPathToFile) && file_exists(($firstPathToFile))) {
-        $firstFile = json_decode(file_get_contents($firstPathToFile), true);
-        $secondFile = json_decode(file_get_contents($secondPathToFile), true);
+        return $getData($firstPathToFile, $secondPathToFile);
     } elseif (file_exists(__DIR__ . '/' . $firstPathToFile) && file_exists(__DIR__ . '/' . $secondPathToFile)) {
-        $firstFile = json_decode(file_get_contents(__DIR__ . '/' . $firstPathToFile), true);
-        $secondFile = json_decode(file_get_contents(__DIR__ . '/' . $secondPathToFile), true);
+        return $getData(__DIR__ . '/' . $firstPathToFile, __DIR__ . '/' . $secondPathToFile);
     } else {
         return false;
     }
-    return  [$firstFile, $secondFile];
+}
+
+function getParser($firstFile)
+{
+    $format = explode('.', $firstFile)[sizeof(explode('.', $firstFile)) - 1];
+    switch ($format) {
+        case 'json':
+            return function ($firstFile, $secondFile) {
+                $firstData = json_decode(file_get_contents($firstFile), false);
+                $secondData = json_decode(file_get_contents($secondFile), false);
+                return [$firstData, $secondData];
+            };
+        break;
+        case 'yaml':
+            return function ($firstFile, $secondFile) {
+                $firstData = Yaml::parse(file_get_contents($firstFile), Yaml::PARSE_OBJECT_FOR_MAP);
+                $secondData = Yaml::parse(file_get_contents($secondFile), Yaml::PARSE_OBJECT_FOR_MAP);
+                return [$firstData, $secondData];
+            };
+        break;
+    }
 }
