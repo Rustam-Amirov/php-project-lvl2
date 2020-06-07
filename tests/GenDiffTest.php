@@ -16,7 +16,7 @@ class GenDiffTest extends TestCase
     {
         $this->relativePathToFile1json = __DIR__ . '/' . 'fixtures/' . 'before.json';
         $this->relativePathToFile2json = __DIR__ . '/' . 'fixtures/' . 'after.json';
-        $this->absolutePathToFile1json= '../tests/fixtures/before.json';
+        $this->absolutePathToFile1json = '../tests/fixtures/before.json';
         $this->absolutePathToFile2json = '../tests/fixtures/after.json';
         
         $this->relativePathToFile1yaml = __DIR__ . '/' . 'fixtures/' . 'before.yaml';
@@ -28,9 +28,9 @@ class GenDiffTest extends TestCase
 
     public function teststringify()
     {
-        $this->assertEquals("  key: value\n", stringify('key', 'value'));
-        $this->assertEquals("  true: false\n", stringify(true, false));
-        $this->assertEquals("+ key: true\n", stringify('key', true, '+'));
+        $this->assertEquals("     key: value\n", stringify('key', 'value'));
+        $this->assertEquals("     true: false\n", stringify(true, false));
+        $this->assertEquals("   + key: true\n", stringify('key', true, '+'));
     }
 
 
@@ -38,11 +38,11 @@ class GenDiffTest extends TestCase
     {
         $result = <<<'EOD'
 {
-- timeout: 50
-+ timeout: 20
-+ verbose: true
-  host: hexlet.io
-- proxy: 123.234.53.22
+    - timeout: 50
+    + timeout: 20
+    + verbose: true
+      host: hexlet.io
+    - proxy: 123.234.53.22
 }
 
 EOD;

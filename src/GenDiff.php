@@ -4,7 +4,7 @@ namespace Differ\GenDiff;
 
 use Symfony\Component\Yaml\Yaml;
 
-use function Funct\Collection\flattenAll;
+use function Funct\Collection\flatten;
 
 function genDiff($request, $secondPathToFile = false)
 {
@@ -13,36 +13,29 @@ function genDiff($request, $secondPathToFile = false)
     } else {
         [$firstData, $secondData] = getDataFiles($request['<firstFile>'], $request['<secondFile>']);
     }
-    $keys = [array_keys((array)$firstData), array_keys((array)$secondData)];
-    $result = array_reduce(array_unique(flattenAll($keys)), function ($acc, $key) use ($firstData, $secondData) {
-        if (isset($firstData->$key) && isset($secondData->$key)) {
-            if ($secondData->$key === $firstData->$key) {
-                $acc = $acc . stringify($key, $secondData->$key);
-            } else {
-                $acc = $acc . stringify($key, $secondData->$key, '-');
-                $acc = $acc . stringify($key, $firstData->$key, '+');
-            }
-        } elseif (isset($secondData->$key)) {
-            $acc = $acc . stringify($key, $secondData->$key, '-');
-        } else {
-            $acc = $acc . stringify($key, $firstData->$key, '+');
-        }
-        return $acc;
-    }, "");
-    return "{\n$result}\n";
+    $result = parsing($firstData, $secondData);
+    return $result;
 }
 
 
 function stringify($key, $value, $prefix = ' ')
 {
+    if (is_object($value)) {
+        $newPrefix = "    " . $prefix;
+        $keys = array_keys((array)$value);
+        $result = implode("\n", array_map(function ($k) use ($value, $newPrefix) {
+            return stringify($k, $value->$k, $newPrefix);
+        }, $keys));
+        return $newPrefix . " " . $key . ": {\n " . $result . "     }\n";
+    }
     if (is_bool($key) && is_bool($value)) {
-        return $prefix . " " . json_encode($key) . ": " . json_encode($value) . "\n";
+        return "    " . $prefix . " " . json_encode($key) . ": " . json_encode($value) . "\n";
     } elseif (is_bool($key)) {
-        return $prefix . " " . json_encode($key) . ": " . $value . "\n";
+        return "    " . $prefix . " " . json_encode($key) . ": " . $value . "\n";
     } elseif (is_bool($value)) {
-        return $prefix . " " . $key . ": " . json_encode($value) . "\n";
+        return "    " . $prefix . " " . $key . ": " . json_encode($value) . "\n";
     } else {
-        return $prefix . " " . $key . ": " . $value . "\n";
+        return "    " . $prefix . " " . $key . ": " . $value . "\n";
     }
 }
 
@@ -78,4 +71,29 @@ function getParser($firstFile)
             };
         break;
     }
+}
+
+function parsing($firstData, $secondData, $pre = '')
+{
+    $s = '';
+    $prefix = '   ';
+    $keys = [array_keys((array)$firstData), array_keys((array)$secondData)];
+    $result = array_reduce(array_unique(flatten($keys)), function ($acc, $key) use ($firstData, $secondData) {
+        if (isset($firstData->$key) && isset($secondData->$key)) {
+            if (is_object($firstData->$key) && is_object($secondData->$key)) {
+                $acc = $acc . stringify($key, parsing($firstData->$key, $secondData->$key));
+            } elseif ($secondData->$key === $firstData->$key) {
+                $acc = $acc . stringify($key, $secondData->$key);
+            } else {
+                $acc = $acc . stringify($key, $secondData->$key, '-');
+                $acc = $acc . stringify($key, $firstData->$key, '+');
+            }
+        } elseif (isset($secondData->$key)) {
+                $acc = $acc . stringify($key, $secondData->$key, '-');
+        } else {
+                $acc = $acc . stringify($key, $firstData->$key, '+');
+        }
+        return $acc;
+    }, "");
+    return "{\n$result}\n";
 }
