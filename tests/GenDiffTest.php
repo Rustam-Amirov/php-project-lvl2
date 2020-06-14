@@ -23,14 +23,17 @@ class GenDiffTest extends TestCase
         $this->relativePathToFile2yaml = __DIR__ . '/' . 'fixtures/' . 'after.yaml';
         $this->absolutePathToFile1yaml = '../tests/fixtures/before.yaml';
         $this->absolutePathToFile2yaml = '../tests/fixtures/after.yaml';
+
+		$this->bigFilejson1 ='../tests/fixtures/before1.json';
+		$this->bigFilejson2 ='../tests/fixtures/after1.json';
     }
 
 
     public function teststringify()
     {
-        $this->assertEquals("     key: value\n", stringify('key', 'value'));
-        $this->assertEquals("     true: false\n", stringify(true, false));
-        $this->assertEquals("   + key: true\n", stringify('key', true, '+'));
+        $this->assertEquals("      key: value\n", stringify('key', 'value'));
+        $this->assertEquals("      true: false\n", stringify(true, false));
+        $this->assertEquals("    + key: true\n", stringify('key', true, '+'));
     }
 
 
@@ -38,11 +41,11 @@ class GenDiffTest extends TestCase
     {
         $result = <<<'EOD'
 {
-    - timeout: 50
-    + timeout: 20
-    + verbose: true
+    + timeout: 50
+    - timeout: 20
+    - verbose: true
       host: hexlet.io
-    - proxy: 123.234.53.22
+    + proxy: 123.234.53.22
 }
 
 EOD;
@@ -56,4 +59,45 @@ EOD;
         $this->assertEquals($result, genDiff(['<firstFile>' => $this->relativePathToFile1yaml, '<secondFile>' => $this->relativePathToFile2yaml]));
         $this->assertEquals($result, genDiff(['<firstFile>' => $this->absolutePathToFile1yaml, '<secondFile>' => $this->absolutePathToFile2yaml]));
     }
+	
+
+
+    public function testgenDiff2()
+    {
+        $result1 = '{
+     common: {
+          setting1: Value 1
+        - setting2: 200
+          setting3: true
+        - setting6: {
+              key: value
+        }
+
+        + setting4: blah blah
+        + setting5: {
+              key5: value5
+        }
+
+    }
+
+     group1: {
+        + baz: bars
+        - baz: bas
+          foo: bar
+    }
+
+    - group2: {
+          abc: 12345
+    }
+
+    + group3: {
+          fee: 100500
+    }
+
+}
+';
+        $this->assertEquals($result1, genDiff($this->bigFilejson1, $this->bigFilejson2));
+    
+    }
+
 }

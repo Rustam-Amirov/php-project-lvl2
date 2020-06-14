@@ -4,3 +4,5 @@
 <h1>Gendiff</h1>
 <p>Это учебный проект в котором реализована утилита для сравнения файлов.</p>
 <a href="https://asciinema.org/a/334526?autoplay=1"><img src="https://asciinema.org/a/334526.png" width="700"/></a>
+<p>Утилита также способна сравнивать файлы со вложенной структурой.</p>
+<a href="https://asciinema.org/a/Q9BBEpxupk8ahrhMqUe33GcHY"><img src="https://asciinema.org/a/Q9BBEpxupk8ahrhMqUe33GcHY.png" width= "700"/></a>
