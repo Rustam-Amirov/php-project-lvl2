@@ -20,6 +20,7 @@ Options:
   -v --version                  Show version
   --format <fmt>                Report format [default: pretty]
 DOC;
-    $result = genDiff(\Docopt::handle($doc, ['version' => 'v0.01']));
+    $request = \Docopt::handle($doc, ['version' => 'v0.01']);
+    $result = genDiff($request['<firstFile>'], $request['<secondFile>'], $request['--format']);
     echo($result);
 }

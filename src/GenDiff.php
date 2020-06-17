@@ -5,32 +5,17 @@ namespace Differ\GenDiff;
 use Symfony\Component\Yaml\Yaml;
 
 use function Funct\Collection\flatten;
-use function Funct\Collection\flattenAll;
+use function Differ\GenDiff\Formatters\Pretty\pretty;
+use function Differ\GenDiff\Formatters\Plain\plain;
 
-function genDiff($request, $secondPathToFile = false)
+function genDiff($firstPathToFile, $secondPathToFile, $format = 'pretty')
 {
-    if ($secondPathToFile) {
-        [$firstData, $secondData] = getDataFiles($request, $secondPathToFile);
-    } else {
-        [$firstData, $secondData] = getDataFiles($request['<firstFile>'], $request['<secondFile>']);
-    }
-    $result = parsing($firstData, $secondData);
+    [$firstData, $secondData] = getDataFiles($firstPathToFile, $secondPathToFile);
+    $formatter = getForamtter($format);
+    $diffResult = diff($firstData, $secondData);
+    $result = $formatter($diffResult);
     return $result;
 }
-
-function stringify($key, $value, $prefix = ' ')
-{
-    if (is_bool($key) && is_bool($value)) {
-        return "    " . $prefix . " " . json_encode($key) . ": " . json_encode($value) . "\n";
-    } elseif (is_bool($key)) {
-        return "    " . $prefix . " " . json_encode($key) . ": " . $value . "\n";
-    } elseif (is_bool($value)) {
-        return "    " . $prefix . " " . $key . ": " . json_encode($value) . "\n";
-    } else {
-        return "    " . $prefix . " " . $key . ": " . $value . "\n";
-    }
-}
-
 
 function getDataFiles($firstPathToFile, $secondPathToFile)
 {
@@ -65,37 +50,63 @@ function getParser($firstFile)
     }
 }
 
-function parsing($firstData, $secondData, $depth = '')
+
+function getForamtter($format)
 {
-    $keys = array_unique(flatten([array_keys((array)$firstData), array_keys((array)$secondData)]));
-    $result = array_reduce($keys, function ($acc, $key) use ($firstData, $secondData, $depth) {
-        if (isset($firstData->$key) && isset($secondData->$key)) {
-            if (is_object($firstData->$key) && is_object($secondData->$key)) {
-                $acc = $acc . stringify($key, parsing($firstData->$key, $secondData->$key, $depth . '    '), $depth);
-            } elseif ($secondData->$key === $firstData->$key) {
-                $acc = $acc . stringify($key, $secondData->$key, $depth . ' ');
+    switch ($format) {
+        case 'pretty':
+            return pretty();
+        break;
+        case 'plain':
+            return plain();
+        break;
+    }
+}
+
+
+function diff($tree1, $tree2, $path = '')
+{
+    $keys = array_unique(flatten([array_keys((array)$tree1), array_keys((array)$tree2)]));
+    return  array_map(function ($k) use ($tree1, $tree2, $path) {
+        if (isset($tree2->$k) && isset($tree1->$k)) {
+            if (is_object($tree1->$k) && is_object($tree2->$k)) {
+                $children = diff($tree1->$k, $tree2->$k, "$path/$k");
+                return ['key' => $k, 'children' => $children, 'path' => "$path/$k", 'diff' => ' '];
+            } elseif ($tree1->$k == $tree2->$k) {
+                return ['key' => $k, 'value' => $tree1->$k, 'path' => "$path/$k", 'diff' => '='];
             } else {
-                if (!is_object($firstData->$key) && !is_object($secondData->$key)) {
-                    $acc = $acc . stringify($key, $secondData->$key, $depth . '+');
-                    $acc = $acc . stringify($key, $firstData->$key, $depth . '-');
-                }
+                $value1 = $tree1->$k;
+                $value2 = $tree2->$k;
+                return ['key' => $k, 'value1' => $value1,'value2' => $value2, 'path' => "$path/$k", 'diff' => '!'];
             }
-        } elseif (isset($secondData->$key)) {
-            if (!is_object($secondData->$key) && !is_array($secondData->$key)) {
-                $newDepth = (empty($firstData)) ? $depth . ' ' : $depth . '+';
-                $acc = $acc . stringify($key, $secondData->$key, $newDepth);
+        } elseif (!isset($tree2->$k)) {
+            if (is_object($tree1->$k)) {
+                $children = getValue($tree1->$k, $path . '/' . $k);
+                return ['key' => $k, 'children' => $children, 'path' => "$path/$k", 'diff' => '-'];
             } else {
-                $acc = $acc . stringify($key, parsing([], $secondData->$key, $depth . '    '), $depth . '+');
+                return ['key' => $k, 'value' => $tree1->$k, 'path' => "$path/$k", 'diff' => '-'];
             }
-        } elseif (isset($firstData->$key)) {
-            if (!is_object($firstData->$key) && !is_array($firstData->$key)) {
-                $newDepth = (empty($secondData)) ? $depth . ' ' : $depth . '-';
-                $acc = $acc . stringify($key, $firstData->$key, $newDepth);
+        } elseif (!isset($tree1->$k)) {
+            if (is_object($tree2->$k)) {
+                $children = getValue($tree2->$k, $path . '/' . $k);
+                return ['key' => $k, 'children' => $children, 'path' => "$path/$k", 'diff' => '+'];
             } else {
-                $acc = $acc . stringify($key, parsing($firstData->$key, [], $depth . '    '), $depth . '-');
+                return ['key' => $k, 'value' => $tree2->$k, 'path' => "$path/$k", 'diff' => '+'];
             }
         }
-            return $acc;
-    }, "");
-    return "{\n$result$depth}\n";
+    }, $keys);
+}
+
+
+function getValue($tree, $path = '/')
+{
+    $keys  = array_keys((array)$tree);
+    return array_map(function ($key) use ($tree, $path) {
+        if (!is_object($tree->$key)) {
+            return ['key' => $key, 'value' => $tree->$key, 'path' => $path . '/' . $key, 'diff' => ' '];
+        } else {
+            $children = getValue($tree->$key, $path . '/' . $key);
+            return ['key' => $key, 'children' => $children, 'path' => $path . '/' . $key];
+        }
+    }, $keys);
 }
