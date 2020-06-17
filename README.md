@@ -6,3 +6,13 @@
 <a href="https://asciinema.org/a/334526?autoplay=1"><img src="https://asciinema.org/a/334526.png" width="700"/></a>
 <p>Утилита также способна сравнивать файлы со вложенной структурой.</p>
 <a href="https://asciinema.org/a/Q9BBEpxupk8ahrhMqUe33GcHY"><img src="https://asciinema.org/a/Q9BBEpxupk8ahrhMqUe33GcHY.png" width= "700"/></a>
+<p>Утилита способна выводить результат в трех вариантах</p>
+<div>-Plian</div>
+<div>-Pretty  [default]</div>
+<div>-JSON</div>
+</br>
+<p>JSON:</p>
+<a href="https://asciinema.org/a/1StSb2hC6UhjmPfWBMkEQw7F5" target="_blank"><img src="https://asciinema.org/a/1StSb2hC6UhjmPfWBMkEQw7F5.svg" width = "700"/></a>
+<p>Plain:</p>
+<a href="https://asciinema.org/a/uXp5S8k9OVwTrz9B4RQHPiaUz" target="_blank"><img src="https://asciinema.org/a/uXp5S8k9OVwTrz9B4RQHPiaUz.svg" width = "700"/></a>
+<p>Поддерживаемые форматы файлов: .json .yaml</p>

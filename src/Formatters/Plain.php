@@ -4,17 +4,9 @@ namespace Differ\GenDiff\Formatters\Plain;
 
 use function Differ\GenDiff\Formatters\Pretty\stringify;
 
-const SUFFIXOUTPUT = [
-        '+' => ' was added with value:',
-        '-' => ' was removed',
-        '' => '',
-        ' ' => ' was changed. From'
-];
-
 function plain()
 {
     return function ($diff) {
-        //print_r($diff);
         $result = parser($diff);
         return $result;
     };

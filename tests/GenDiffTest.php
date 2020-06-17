@@ -118,4 +118,17 @@ Property 'group3' was added with value: 'complex value'
 
         $this->assertEquals($result, genDiff($this->bigFilejson1, $this->bigFilejson2, 'plain'));
     }
+
+    public function testgendiffFormatJSON()
+    {
+        $result = '[{" host":"hexlet.io"},{"+ timeout":20},{"- timeout":50},{"- proxy":"123.234.53.22"},{"+ verbose":"true"}]';
+        $this->assertEquals($result, genDiff($this->relativePathToFile1json, $this->relativePathToFile2json, 'json'));
+        $this->assertEquals($result, genDiff($this->absolutePathToFile1json, $this->absolutePathToFile2json, 'json'));
+    }
+
+    public function testgendiffFormatJSONdepth()
+    {
+        $result = '[{"  common":[{" setting1":"Value 1"},{"- setting2":"200"},{" setting3":"true"},{"- setting6":[{"  key":"value"}]},{"+ setting4":"blah blah"},{"+ setting5":[{"  key5":"value5"}]}]},{"  group1":[{"+ baz":"bars"},{"- baz":"bas"},{" foo":"bar"}]},{"- group2":[{"  abc":"12345"}]},{"+ group3":[{"  fee":"100500"}]}]';
+        $this->assertEquals($result, genDiff($this->bigFilejson1, $this->bigFilejson2, 'json'));
+    }
 }

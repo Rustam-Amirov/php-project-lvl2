@@ -7,6 +7,7 @@ use Symfony\Component\Yaml\Yaml;
 use function Funct\Collection\flatten;
 use function Differ\GenDiff\Formatters\Pretty\pretty;
 use function Differ\GenDiff\Formatters\Plain\plain;
+use function Differ\GenDiff\Formatters\GetJson\getJson;
 
 function genDiff($firstPathToFile, $secondPathToFile, $format = 'pretty')
 {
@@ -59,6 +60,9 @@ function getForamtter($format)
         break;
         case 'plain':
             return plain();
+        break;
+        case 'json':
+            return getJson();
         break;
     }
 }
