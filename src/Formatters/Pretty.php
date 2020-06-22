@@ -38,6 +38,6 @@ function stringify($str)
     if (is_bool($str)) {
         return json_encode($str);
     } else {
-         return $str;
+        return $str;
     }
 }

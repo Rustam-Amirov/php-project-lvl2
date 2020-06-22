@@ -18,7 +18,6 @@
 	},
 	"autoload":{
         "files":[
-            "src/Docopt.php",
             "src/GenDiff.php",
 			"src/Formatters/Pretty.php",
             "src/Formatters/Plain.php",

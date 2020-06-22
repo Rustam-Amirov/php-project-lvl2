@@ -1,5 +1,4 @@
 <img src = "https://github.com/Rustam-Amirov/php-project-lvl2/workflows/CI/badge.svg?branch=master"></img>
-[![Build Status](https://travis-ci.org/Rustam-Amirov/php-project-lvl2.svg?branch=master)](https://travis-ci.org/Rustam-Amirov/php-project-lvl2)
 [![Maintainability](https://api.codeclimate.com/v1/badges/bb2d60df0a85e2974405/maintainability)](https://codeclimate.com/github/Rustam-Amirov/php-project-lvl2/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/bb2d60df0a85e2974405/test_coverage)](https://codeclimate.com/github/Rustam-Amirov/php-project-lvl2/test_coverage)
 <h1>Gendiff</h1>

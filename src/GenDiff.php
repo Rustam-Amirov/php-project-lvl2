@@ -11,41 +11,40 @@ use function Differ\GenDiff\Formatters\GetJson\getJson;
 
 function genDiff($firstPathToFile, $secondPathToFile, $format = 'pretty')
 {
-    [$firstData, $secondData] = getDataFiles($firstPathToFile, $secondPathToFile);
+    $firstData = getDataFiles($firstPathToFile);
+    $secondData = getDataFiles($secondPathToFile);
     $formatter = getForamtter($format);
     $diffResult = diff($firstData, $secondData);
     $result = $formatter($diffResult);
     return $result;
 }
 
-function getDataFiles($firstPathToFile, $secondPathToFile)
+function getDataFiles($path)
 {
-    $getData = getParser($firstPathToFile);
-    if (file_exists($secondPathToFile) && file_exists(($firstPathToFile))) {
-        return $getData($firstPathToFile, $secondPathToFile);
-    } elseif (file_exists(__DIR__ . '/' . $firstPathToFile) && file_exists(__DIR__ . '/' . $secondPathToFile)) {
-        return $getData(__DIR__ . '/' . $firstPathToFile, __DIR__ . '/' . $secondPathToFile);
+    $format = explode('.', $path)[sizeof(explode('.', $path)) - 1];
+    $getData = getParser($path, $format);
+    if (file_exists($path)) {
+        return $getData($path);
+    } elseif (file_exists(__DIR__ . '/' . $path)) {
+        return $getData(__DIR__ . '/' . $path);
     } else {
         return false;
     }
 }
 
-function getParser($firstFile)
+function getParser($file, $format)
 {
-    $format = explode('.', $firstFile)[sizeof(explode('.', $firstFile)) - 1];
     switch ($format) {
         case 'json':
-            return function ($firstFile, $secondFile) {
-                $firstData = json_decode(file_get_contents($firstFile), false);
-                $secondData = json_decode(file_get_contents($secondFile), false);
-                return [$firstData, $secondData];
+            return function ($file) {
+                $fileData = json_decode(file_get_contents($file), false);
+                return $fileData;
             };
         break;
         case 'yaml':
-            return function ($firstFile, $secondFile) {
-                $firstData = Yaml::parse(file_get_contents($firstFile), Yaml::PARSE_OBJECT_FOR_MAP);
-                $secondData = Yaml::parse(file_get_contents($secondFile), Yaml::PARSE_OBJECT_FOR_MAP);
-                return [$firstData, $secondData];
+            return function ($file) {
+                $fileData = Yaml::parse(file_get_contents($file), Yaml::PARSE_OBJECT_FOR_MAP);
+                return $fileData;
             };
         break;
     }
