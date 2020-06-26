@@ -12,21 +12,31 @@ function getJson()
     };
 }
 
+const MARK = [
+    'deleted' => '-',
+    'add' => '+',
+    'unchanged' => '',
+    'nested' => ' '
+];
+
+
 function parser($tree)
 {
     return array_reduce($tree, function ($acc, $v) {
-        if (isset($v['children'])) {
-            $acc[] = [$v['diff'] . ' ' . $v['key'] => parser($v['children'])];
+        if (!empty($v['children'])) {
+            $acc[] = [MARK[$v['diff']] . ' ' . $v['key'] => parser($v['children'])];
         } else {
-            if ($v['diff'] == '+' || $v['diff'] == '-' || $v['diff'] == ' ') {
-                $acc[] = [$v['diff'] . ' ' . $v['key'] => stringify($v['value'])];
-            } elseif ($v['diff'] == '=') {
-                $acc[] = [' ' . $v['key'] => stringify($v['value'])];
+            if ($v['diff'] == 'changed') {
+                $acc[] = ['+ ' . $v['key'] => stringify($v['value']['new'])];
+                $acc[] = ['- ' . $v['key'] => stringify($v['value']['old'])];
             } else {
-                $acc[] = ['+ ' . $v['key'] => stringify($v['value2'])];
-                $acc[] = ['- ' . $v['key'] => stringify($v['value1'])];
+                $acc[] = [MARK[$v['diff']] . ' ' . $v['key'] => stringify($v['value'])];
             }
         }
         return $acc;
     }, []);
+}
+
+function substituteDifference($diff)
+{
 }

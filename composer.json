@@ -1,25 +1,25 @@
 {
     "name": "rustam/php-project-lvl2",
-	"bin": ["bin/gendiff"],
+    "bin": ["bin/gendiff"],
     "license": "MIT",
-	"description": "hexlet php-package",
+    "description": "hexlet php-package",
     "authors": [
         {
             "name": "Rustam Amirov",
             "email": "r.amirov@yahoo.com"
         }
     ],
-	"scripts": {
-		"phpcs": "phpcs",
-		"phpcbf": "phpcbf",
+    "scripts": {
+        "phpcs": "phpcs",
+        "phpcbf": "phpcbf",
         "psysh": "physh",
         "phpunit": "phpunit",
         "test": "phpunit tests"
-	},
-	"autoload":{
+    },
+    "autoload":{
         "files":[
             "src/GenDiff.php",
-			"src/Formatters/Pretty.php",
+            "src/Formatters/Pretty.php",
             "src/Formatters/Plain.php",
             "src/Formatters/GetJson.php"
         ],

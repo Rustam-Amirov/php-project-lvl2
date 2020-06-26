@@ -5,28 +5,33 @@ namespace Differ\GenDiff\Formatters\Pretty;
 use function Funct\Strings\countOccurrences;
 use function Funct\Strings\padLeft;
 
+const MARK = [
+    'deleted' => '-',
+    'add' => '+',
+    'unchanged' => ' ',
+    'nested' => ' '
+];
+
+
 function pretty()
 {
     return function ($diff) {
-        $res =  parser($diff);
+        $res = parse($diff);
         return "{" . $res . "\n}\n";
     };
 }
-function parser($diff)
+function parse($diff, $countTab = '  ')
 {
-    return array_reduce($diff, function ($acc, $v) {
-        $countTab = padLeft('', (countOccurrences($v['path'], '/') * 4 - 2));
-        if (isset($v['children'])) {
-            $children = parser($v['children']);
-            $acc .= "\n" . $countTab . $v['diff'] . ' ' . $v['key'] . ': {' . $children . "\n" . $countTab . '  }';
+    return array_reduce($diff, function ($acc, $v) use ($countTab) {
+        if (!empty($v['children'])) {
+            $child = parse($v['children'], $countTab . '    ');
+            $acc .= "\n" . $countTab . MARK[$v['diff']] . ' ' . $v['key'] . ': {' . $child . "\n" . $countTab . '  }';
         } else {
-            if ($v['diff'] == '+' || $v['diff'] == '-' || $v['diff'] == ' ') {
-                $acc .= "\n" . $countTab . $v['diff'] . ' ' . $v['key'] . ': ' . stringify($v['value']);
-            } elseif ($v['diff'] == '=') {
-                $acc .= "\n" . $countTab . '  ' . $v['key'] . ': ' . stringify($v['value']);
+            if ($v['diff'] == 'changed') {
+                $acc .= "\n" . $countTab . '+ ' . $v['key'] . ': ' . stringify($v['value']['new']);
+                $acc .= "\n" . $countTab . '- ' . $v['key'] . ': ' . stringify($v['value']['old']);
             } else {
-                $acc .= "\n" . $countTab . '+ ' . $v['key'] . ': ' . stringify($v['value2']);
-                $acc .= "\n" . $countTab . '- ' . $v['key'] . ': ' . stringify($v['value1']);
+                $acc .= "\n" . $countTab . MARK[$v['diff']] . ' ' . $v['key'] . ': ' . stringify($v['value']);
             }
         }
         return $acc;

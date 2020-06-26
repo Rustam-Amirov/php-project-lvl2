@@ -4,54 +4,49 @@ namespace Differ\GenDiff;
 
 use Symfony\Component\Yaml\Yaml;
 
-use function Funct\Collection\flatten;
 use function Differ\GenDiff\Formatters\Pretty\pretty;
 use function Differ\GenDiff\Formatters\Plain\plain;
 use function Differ\GenDiff\Formatters\GetJson\getJson;
 
 function genDiff($firstPathToFile, $secondPathToFile, $format = 'pretty')
 {
-    $firstData = getDataFiles($firstPathToFile);
-    $secondData = getDataFiles($secondPathToFile);
-    $formatter = getForamtter($format);
+    $firstData = getDataFile($firstPathToFile);
+    $secondData = getDataFile($secondPathToFile);
+    $formatter = getFormatter($format);
     $diffResult = diff($firstData, $secondData);
     $result = $formatter($diffResult);
     return $result;
 }
 
-function getDataFiles($path)
+function getDataFile($filePath)
 {
-    $format = explode('.', $path)[sizeof(explode('.', $path)) - 1];
-    $getData = getParser($path, $format);
-    if (file_exists($path)) {
-        return $getData($path);
-    } elseif (file_exists(__DIR__ . '/' . $path)) {
-        return $getData(__DIR__ . '/' . $path);
-    } else {
-        return false;
-    }
+    $format = explode('.', $filePath)[sizeof(explode('.', $filePath)) - 1];
+    $getData = parse($format);
+    return $getData($filePath);
 }
 
-function getParser($file, $format)
+function parse($format)
 {
     switch ($format) {
         case 'json':
-            return function ($file) {
-                $fileData = json_decode(file_get_contents($file), false);
+            return function ($filePath) {
+                $fileData = json_decode(file_get_contents(realpath($filePath)), false);
                 return $fileData;
             };
         break;
         case 'yaml':
-            return function ($file) {
-                $fileData = Yaml::parse(file_get_contents($file), Yaml::PARSE_OBJECT_FOR_MAP);
+            return function ($filePath) {
+                $fileData = Yaml::parse(file_get_contents(realpath($filePath)), Yaml::PARSE_OBJECT_FOR_MAP);
                 return $fileData;
             };
         break;
+        default:
+            throw new \Exception("Неподдерживаемый формат файла: {$format}", 1);
     }
 }
 
 
-function getForamtter($format)
+function getFormatter($format)
 {
     switch ($format) {
         case 'pretty':
@@ -67,49 +62,48 @@ function getForamtter($format)
 }
 
 
-function diff($tree1, $tree2, $path = '')
+function diff($tree1, $tree2)
 {
-    $keys = array_unique(flatten([array_keys((array)$tree1), array_keys((array)$tree2)]));
-    return  array_map(function ($k) use ($tree1, $tree2, $path) {
-        if (isset($tree2->$k) && isset($tree1->$k)) {
+    $keys = array_keys(array_merge(get_object_vars($tree1), get_object_vars($tree2)));
+    return  array_map(function ($k) use ($tree1, $tree2) {
+        if (property_exists($tree2, $k) && property_exists($tree1, $k)) {
             if (is_object($tree1->$k) && is_object($tree2->$k)) {
-                $children = diff($tree1->$k, $tree2->$k, "$path/$k");
-                return ['key' => $k, 'children' => $children, 'path' => "$path/$k", 'diff' => ' '];
+                return collectNode($k, diff($tree1->$k, $tree2->$k), [], 'nested');
             } elseif ($tree1->$k == $tree2->$k) {
-                return ['key' => $k, 'value' => $tree1->$k, 'path' => "$path/$k", 'diff' => '='];
+                return collectNode($k, [], $tree1->$k, 'unchanged');
             } else {
-                $value1 = $tree1->$k;
-                $value2 = $tree2->$k;
-                return ['key' => $k, 'value1' => $value1,'value2' => $value2, 'path' => "$path/$k", 'diff' => '!'];
+                return collectNode($k, [], ['old' => $tree1->$k, 'new' => $tree2->$k], 'changed');
             }
-        } elseif (!isset($tree2->$k)) {
+        } elseif (!property_exists($tree2, $k)) {
             if (is_object($tree1->$k)) {
-                $children = getValue($tree1->$k, $path . '/' . $k);
-                return ['key' => $k, 'children' => $children, 'path' => "$path/$k", 'diff' => '-'];
+                return collectNode($k, getchildren($tree1->$k), [], 'deleted');
             } else {
-                return ['key' => $k, 'value' => $tree1->$k, 'path' => "$path/$k", 'diff' => '-'];
+                return collectNode($k, [], $tree1->$k, 'deleted');
             }
-        } elseif (!isset($tree1->$k)) {
+        } elseif (!property_exists($tree1, $k)) {
             if (is_object($tree2->$k)) {
-                $children = getValue($tree2->$k, $path . '/' . $k);
-                return ['key' => $k, 'children' => $children, 'path' => "$path/$k", 'diff' => '+'];
+                return collectNode($k, getchildren($tree2->$k), [], 'add');
             } else {
-                return ['key' => $k, 'value' => $tree2->$k, 'path' => "$path/$k", 'diff' => '+'];
+                return collectNode($k, [], $tree2->$k, 'add');
             }
         }
     }, $keys);
 }
 
 
-function getValue($tree, $path = '/')
+function getChildren($tree)
 {
     $keys  = array_keys((array)$tree);
-    return array_map(function ($key) use ($tree, $path) {
+    return array_map(function ($key) use ($tree) {
         if (!is_object($tree->$key)) {
-            return ['key' => $key, 'value' => $tree->$key, 'path' => $path . '/' . $key, 'diff' => ' '];
+            return collectNode($key, [], $tree->$key, 'nested');
         } else {
-            $children = getValue($tree->$key, $path . '/' . $key);
-            return ['key' => $key, 'children' => $children, 'path' => $path . '/' . $key];
+            return collectNode($key, getchildren($tree->$key), [], 'unchanged');
         }
     }, $keys);
+}
+
+function collectNode($key, $children, $value, $diff)
+{
+    return ['key' => $key, 'children' => $children, 'value' => $value, 'diff' => $diff];
 }

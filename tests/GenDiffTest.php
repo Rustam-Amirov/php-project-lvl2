@@ -19,7 +19,7 @@ class GenDiffTest extends TestCase
 
     public function additionalProviderJSON()
     {
-        return [["../tests/fixtures/before1.json", "../tests/fixtures/after1.json", 'json']];
+        return [["tests/fixtures/before1.json", "tests/fixtures/after1.json", 'json']];
     }
 
 
@@ -34,7 +34,7 @@ class GenDiffTest extends TestCase
 
     public function additionalProviderPlain()
     {
-        return [["../tests/fixtures/before1.json", "../tests/fixtures/after1.json", 'plain']];
+        return [["tests/fixtures/before1.json", "tests/fixtures/after1.json", 'plain']];
     }
 
 
@@ -49,7 +49,7 @@ class GenDiffTest extends TestCase
 
     public function additionalProviderPretty()
     {
-        return [["../tests/fixtures/before1.json", "../tests/fixtures/after1.json", 'pretty']];
+        return [["tests/fixtures/before1.json", "tests/fixtures/after1.json", 'pretty']];
     }
 
     /**
@@ -63,6 +63,6 @@ class GenDiffTest extends TestCase
 
     public function additionalProviderYaml()
     {
-        return [["../tests/fixtures/before.yaml", "../tests/fixtures/after.yaml", 'pretty']];
+        return [["tests/fixtures/before.yaml", "tests/fixtures/after.yaml", 'pretty']];
     }
 }

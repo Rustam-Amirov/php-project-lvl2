@@ -7,27 +7,27 @@ use function Differ\GenDiff\Formatters\Pretty\stringify;
 function plain()
 {
     return function ($diff) {
-        $result = parser($diff);
+        $result = parse($diff);
         return $result;
     };
 }
 
-function parser($diff)
+function parse($diff, $path = '')
 {
-    return array_reduce($diff, function ($acc, $v) {
-        if (isset($v['children']) && $v['diff'] == ' ') {
-            $acc .= parser($v['children']);
+    return array_reduce($diff, function ($acc, $v) use ($path) {
+        $path = ($path == '') ? $v['key'] : $path . '.' . $v['key'];
+        if (!empty($v['children']) && $v['diff'] == 'nested') {
+            $acc .= parse($v['children'], $path);
         } else {
-            $path = substr(str_replace('/', '.', $v['path']), 1);
-            if ($v['diff'] == '-') {
+            if ($v['diff'] == 'deleted') {
                 $acc .= "Property '" . $path . "' was removed\n";
-            } elseif ($v['diff'] == '+') {
-                $value = isset($v['children']) ? 'complex value' : stringify($v['value']);
+            } elseif ($v['diff'] == 'add') {
+                $value = !empty($v['children']) ? 'complex value' : stringify($v['value']);
                 $acc .= "Property '" . $path . "' was added with value: '" . stringify($value) . "'\n";
-            } elseif ($v['diff'] == '!') {
-                $value1 = stringify($v['value1']);
-                $value2 = stringify($v['value2']);
-                $acc .= "Property '" . $path . "' was changed. From '" . $value1 . "' to '" . $value2 . "'\n";
+            } elseif ($v['diff'] == 'changed') {
+                $valueOld = stringify($v['value']['old']);
+                $valueNew = stringify($v['value']['new']);
+                $acc .= "Property '" . $path . "' was changed. From '" . $valueOld . "' to '" . $valueNew . "'\n";
             }
         }
         return $acc;
