@@ -16,19 +16,17 @@ function parse($diff, $path = '')
 {
     return array_reduce($diff, function ($acc, $v) use ($path) {
         $path = ($path == '') ? $v['key'] : $path . '.' . $v['key'];
-        if (!empty($v['children']) && $v['diff'] == 'nested') {
+        if ($v['diff'] === 'nested') {
             $acc .= parse($v['children'], $path);
-        } else {
-            if ($v['diff'] == 'deleted') {
-                $acc .= "Property '" . $path . "' was removed\n";
-            } elseif ($v['diff'] == 'add') {
-                $value = !empty($v['children']) ? 'complex value' : stringify($v['value']);
-                $acc .= "Property '" . $path . "' was added with value: '" . stringify($value) . "'\n";
-            } elseif ($v['diff'] == 'changed') {
-                $valueOld = stringify($v['value']['old']);
-                $valueNew = stringify($v['value']['new']);
-                $acc .= "Property '" . $path . "' was changed. From '" . $valueOld . "' to '" . $valueNew . "'\n";
-            }
+        } elseif ($v['diff'] === 'deleted') {
+            $acc .= "Property '" . $path . "' was removed\n";
+        } elseif ($v['diff'] === 'added') {
+            $value = is_object($v['newValue']) ? 'complex value' : stringify($v['newValue']);
+            $acc .= "Property '" . $path . "' was added with value: '" . stringify($value) . "'\n";
+        } elseif ($v['diff'] === 'changed') {
+            $valueOld = stringify($v['oldValue']);
+            $valueNew = stringify($v['newValue']);
+            $acc .= "Property '" . $path . "' was changed. From '" . $valueOld . "' to '" . $valueNew . "'\n";
         }
         return $acc;
     }, '');

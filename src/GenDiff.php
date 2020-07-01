@@ -4,9 +4,8 @@ namespace Differ\GenDiff;
 
 use Symfony\Component\Yaml\Yaml;
 
-use function Differ\GenDiff\Formatters\Pretty\pretty;
-use function Differ\GenDiff\Formatters\Plain\plain;
-use function Differ\GenDiff\Formatters\GetJson\getJson;
+use function Funct\Collection\union;
+use function Differ\Formatters\getFormatter;
 
 function genDiff($firstPathToFile, $secondPathToFile, $format = 'pretty')
 {
@@ -20,24 +19,24 @@ function genDiff($firstPathToFile, $secondPathToFile, $format = 'pretty')
 
 function getDataFile($filePath)
 {
-    $format = explode('.', $filePath)[sizeof(explode('.', $filePath)) - 1];
-    $getData = parse($format);
+    $format = pathinfo($filePath, PATHINFO_EXTENSION);
+    $getData = extract($format);
     return $getData($filePath);
 }
 
-function parse($format)
+function extract($format)
 {
     switch ($format) {
         case 'json':
             return function ($filePath) {
-                $fileData = json_decode(file_get_contents(realpath($filePath)), false);
-                return $fileData;
+                $data = json_decode(file_get_contents(realpath($filePath)), false);
+                return $data;
             };
         break;
         case 'yaml':
             return function ($filePath) {
-                $fileData = Yaml::parse(file_get_contents(realpath($filePath)), Yaml::PARSE_OBJECT_FOR_MAP);
-                return $fileData;
+                $data = Yaml::parse(file_get_contents(realpath($filePath)), Yaml::PARSE_OBJECT_FOR_MAP);
+                return $data;
             };
         break;
         default:
@@ -46,64 +45,28 @@ function parse($format)
 }
 
 
-function getFormatter($format)
-{
-    switch ($format) {
-        case 'pretty':
-            return pretty();
-        break;
-        case 'plain':
-            return plain();
-        break;
-        case 'json':
-            return getJson();
-        break;
-    }
-}
-
-
 function diff($tree1, $tree2)
 {
-    $keys = array_keys(array_merge(get_object_vars($tree1), get_object_vars($tree2)));
-    return  array_map(function ($k) use ($tree1, $tree2) {
-        if (property_exists($tree2, $k) && property_exists($tree1, $k)) {
-            if (is_object($tree1->$k) && is_object($tree2->$k)) {
-                return collectNode($k, diff($tree1->$k, $tree2->$k), [], 'nested');
-            } elseif ($tree1->$k == $tree2->$k) {
-                return collectNode($k, [], $tree1->$k, 'unchanged');
-            } else {
-                return collectNode($k, [], ['old' => $tree1->$k, 'new' => $tree2->$k], 'changed');
-            }
-        } elseif (!property_exists($tree2, $k)) {
-            if (is_object($tree1->$k)) {
-                return collectNode($k, getchildren($tree1->$k), [], 'deleted');
-            } else {
-                return collectNode($k, [], $tree1->$k, 'deleted');
-            }
-        } elseif (!property_exists($tree1, $k)) {
-            if (is_object($tree2->$k)) {
-                return collectNode($k, getchildren($tree2->$k), [], 'add');
-            } else {
-                return collectNode($k, [], $tree2->$k, 'add');
-            }
-        }
-    }, $keys);
-}
-
-
-function getChildren($tree)
-{
-    $keys  = array_keys((array)$tree);
-    return array_map(function ($key) use ($tree) {
-        if (!is_object($tree->$key)) {
-            return collectNode($key, [], $tree->$key, 'nested');
+    $keys = union(array_keys(get_object_vars($tree1)), array_keys(get_object_vars($tree2)));
+    return  array_map(function ($key) use ($tree1, $tree2) {
+        if (!property_exists($tree2, $key)) {
+            return buildNode($key, $tree1->$key, null, "deleted");
+        } elseif (!property_exists($tree1, $key)) {
+            return buildNode($key, null, $tree2->$key, "added");
         } else {
-            return collectNode($key, getchildren($tree->$key), [], 'unchanged');
+            if (is_object($tree1->$key) && is_object($tree2->$key)) {
+                return buildNode($key, $tree1->$key, $tree2->$key, "nested", diff($tree1->$key, $tree2->$key));
+            } elseif ($tree1->$key === $tree2->$key) {
+                return buildNode($key, $tree1->$key, $tree2->$key, "unchanged");
+            } else {
+                return buildNode($key, $tree1->$key, $tree2->$key, "changed");
+            }
         }
     }, $keys);
 }
 
-function collectNode($key, $children, $value, $diff)
+
+function buildNode($key, $oldValue, $newValue, $type, $children = [])
 {
-    return ['key' => $key, 'children' => $children, 'value' => $value, 'diff' => $diff];
+    return ["key" => $key, "children" => $children, "oldValue" => $oldValue, "newValue" => $newValue, "diff" => $type];
 }

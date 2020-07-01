@@ -2,8 +2,6 @@
 
 namespace Differ\GenDiff\Formatters\GetJson;
 
-use function Differ\GenDiff\Formatters\Pretty\stringify;
-
 function getJson()
 {
     return function ($tree) {
@@ -13,30 +11,26 @@ function getJson()
 }
 
 const MARK = [
-    'deleted' => '-',
-    'add' => '+',
-    'unchanged' => '',
-    'nested' => ' '
+    'deleted' => "-",
+    'added' => "+",
+    'unchanged' => "",
+    'nested' => " "
 ];
 
 
 function parser($tree)
 {
     return array_reduce($tree, function ($acc, $v) {
-        if (!empty($v['children'])) {
-            $acc[] = [MARK[$v['diff']] . ' ' . $v['key'] => parser($v['children'])];
+        if ($v['diff'] === 'nested') {
+            $acc[] = [MARK[$v['diff']] . " " . $v['key'] => parser($v['children'])];
+        } elseif ($v['diff'] === 'changed') {
+            $acc[] = ["+ " . $v['key'] => $v['newValue']];
+            $acc[] = ["- " . $v['key'] => $v['oldValue']];
+        } elseif ($v['diff'] === 'added') {
+            $acc[] = [MARK[$v['diff']] . " " . $v['key'] => $v['newValue']];
         } else {
-            if ($v['diff'] == 'changed') {
-                $acc[] = ['+ ' . $v['key'] => stringify($v['value']['new'])];
-                $acc[] = ['- ' . $v['key'] => stringify($v['value']['old'])];
-            } else {
-                $acc[] = [MARK[$v['diff']] . ' ' . $v['key'] => stringify($v['value'])];
-            }
+            $acc[] = [MARK[$v['diff']] . " " . $v['key'] => $v['oldValue']];
         }
         return $acc;
     }, []);
-}
-
-function substituteDifference($diff)
-{
 }
