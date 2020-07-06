@@ -2,8 +2,6 @@
 
 namespace Differ\GenDiff\Formatters\Plain;
 
-use function Differ\GenDiff\Formatters\Pretty\stringify;
-
 function plain()
 {
     return function ($diff) {
@@ -14,20 +12,32 @@ function plain()
 
 function parse($diff, $path = '')
 {
-    return array_reduce($diff, function ($acc, $v) use ($path) {
+    $result = array_map(function ($v) use ($path) {
         $path = ($path == '') ? $v['key'] : $path . '.' . $v['key'];
-        if ($v['diff'] === 'nested') {
-            $acc .= parse($v['children'], $path);
-        } elseif ($v['diff'] === 'deleted') {
-            $acc .= "Property '" . $path . "' was removed\n";
-        } elseif ($v['diff'] === 'added') {
+        if ($v['type'] === 'nested') {
+            return parse($v['children'], $path);
+        } elseif ($v['type'] === 'deleted') {
+            return sprintf("Property '%s' was removed\n", $path);
+        } elseif ($v['type'] === 'added') {
             $value = is_object($v['newValue']) ? 'complex value' : stringify($v['newValue']);
-            $acc .= "Property '" . $path . "' was added with value: '" . stringify($value) . "'\n";
-        } elseif ($v['diff'] === 'changed') {
+            return sprintf("Property '%s' was added with value: '%s'\n", $path, $value);
+        } elseif ($v['type'] === 'changed') {
             $valueOld = stringify($v['oldValue']);
             $valueNew = stringify($v['newValue']);
-            $acc .= "Property '" . $path . "' was changed. From '" . $valueOld . "' to '" . $valueNew . "'\n";
+            return sprintf("Property '%s' was changed. From '%s' to '%s'\n", $path, $valueOld, $valueNew);
         }
-        return $acc;
-    }, '');
+    }, $diff);
+    return implode($result);
+}
+
+
+function stringify($value)
+{
+    if (is_bool($value)) {
+        return $value ? 'true' : 'false';
+    } elseif (is_object($value)) {
+        return 'complex value';
+    } else {
+        return $value;
+    }
 }
