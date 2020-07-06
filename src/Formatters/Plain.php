@@ -14,7 +14,7 @@ function parse($diff, $path = '')
 {
     $result = array_map(function ($v) use ($path) {
         $path = ($path == '') ? $v['key'] : $path . '.' . $v['key'];
-        $iter ='';
+        $iter = '';
         if ($v['type'] === 'nested') {
             $iter = parse($v['children'], $path);
         } elseif ($v['type'] === 'deleted') {

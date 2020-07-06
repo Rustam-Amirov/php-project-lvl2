@@ -57,11 +57,11 @@ function diff($tree1, $tree2)
             $iter = buildNode($key, 'added', null, $tree2->$key);
         } else {
             if (is_object($tree1->$key) && is_object($tree2->$key)) {
-               $iter = buildNode($key, 'nested', $tree1->$key, $tree2->$key, diff($tree1->$key, $tree2->$key));
+                $iter = buildNode($key, 'nested', $tree1->$key, $tree2->$key, diff($tree1->$key, $tree2->$key));
             } elseif ($tree1->$key === $tree2->$key) {
-               $iter = buildNode($key, 'unchanged', $tree1->$key, $tree2->$key);
+                $iter = buildNode($key, 'unchanged', $tree1->$key, $tree2->$key);
             } else {
-               $iter = buildNode($key, 'changed', $tree1->$key, $tree2->$key);
+                $iter = buildNode($key, 'changed', $tree1->$key, $tree2->$key);
             }
         }
         return $iter;
