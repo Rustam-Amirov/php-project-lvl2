@@ -23,16 +23,16 @@ function parse($diff, $countTab = '  ')
 {
     $newTree = array_map(function ($v) use ($countTab) {
         if ($v['type'] == 'nested') {
-            return buildNode($countTab, MARK[$v['type']], $v['key'], getValue($v['children'], $countTab));
+            $iter = buildNode($countTab, MARK[$v['type']], $v['key'], getValue($v['children'], $countTab));
         } elseif ($v['type'] === 'changed') {
             $iter =  buildNode($countTab, '+', $v['key'], getValue($v['newValue'], $countTab));
             $iter .= buildNode($countTab, '-', $v['key'], getValue($v['oldValue'], $countTab));
-            return $iter;
         } elseif ($v['type'] === 'added') {
-            return buildNode($countTab, MARK[$v['type']], $v['key'], getValue($v['newValue'], $countTab));
+            $iter = buildNode($countTab, MARK[$v['type']], $v['key'], getValue($v['newValue'], $countTab));
         } else {
-            return buildNode($countTab, MARK[$v['type']], $v['key'], getValue($v['oldValue'], $countTab));
+            $iter = buildNode($countTab, MARK[$v['type']], $v['key'], getValue($v['oldValue'], $countTab));
         }
+        return $iter;
     }, $diff);
     return implode($newTree);
 }
@@ -58,7 +58,7 @@ function getValue($tree, $tab = '')
 {
     if (is_array($tree)) {
         $s = array_map(function ($val) use ($tab) {
-            return  parse([$val], $tab . '    ');
+            return parse([$val], $tab . '    ');
         }, $tree);
         return '{' . implode($s) . "\n" . $tab . "  }";
     }
@@ -67,11 +67,7 @@ function getValue($tree, $tab = '')
     }
     $keys = array_keys(get_object_vars($tree));
     $result = array_map(function ($key) use ($tree, $tab) {
-        if (!is_object($tree->$key)) {
-            return stringify("{\n " . $tab . '     ' . $key . ': ' . $tree->$key . "\n" . $tab . "  }");
-        } else {
-            return "{\n" . parse($tree->$key, $tab . '    ');
-        }
+        return stringify("{\n " . $tab . '     ' . $key . ': ' . $tree->$key . "\n" . $tab . "  }");
     }, $keys);
     return implode($result);
 }

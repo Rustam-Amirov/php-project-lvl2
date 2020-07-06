@@ -52,18 +52,19 @@ function diff($tree1, $tree2)
     $keys = union(array_keys(get_object_vars($tree1)), array_keys(get_object_vars($tree2)));
     return  array_map(function ($key) use ($tree1, $tree2) {
         if (!property_exists($tree2, $key)) {
-            return buildNode($key, 'deleted', $tree1->$key);
+            $iter = buildNode($key, 'deleted', $tree1->$key);
         } elseif (!property_exists($tree1, $key)) {
-            return buildNode($key, 'added', null, $tree2->$key);
+            $iter = buildNode($key, 'added', null, $tree2->$key);
         } else {
             if (is_object($tree1->$key) && is_object($tree2->$key)) {
-                return buildNode($key, 'nested', $tree1->$key, $tree2->$key, diff($tree1->$key, $tree2->$key));
+               $iter = buildNode($key, 'nested', $tree1->$key, $tree2->$key, diff($tree1->$key, $tree2->$key));
             } elseif ($tree1->$key === $tree2->$key) {
-                return buildNode($key, 'unchanged', $tree1->$key, $tree2->$key);
+               $iter = buildNode($key, 'unchanged', $tree1->$key, $tree2->$key);
             } else {
-                return buildNode($key, 'changed', $tree1->$key, $tree2->$key);
+               $iter = buildNode($key, 'changed', $tree1->$key, $tree2->$key);
             }
         }
+        return $iter;
     }, $keys);
 }
 
