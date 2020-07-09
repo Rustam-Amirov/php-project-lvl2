@@ -2,48 +2,22 @@
 
 namespace Differ\GenDiff;
 
-use Symfony\Component\Yaml\Yaml;
-
 use function Funct\Collection\union;
 use function Differ\Formatters\getFormatter;
+use function Differ\Parsers\parse;
 
 function genDiff($firstPathToFile, $secondPathToFile, $format = 'pretty')
 {
-    $firstData = getDataFile($firstPathToFile);
-    $secondData = getDataFile($secondPathToFile);
+    $firstData = file_get_contents(realpath($firstPathToFile));
+    $secondData = file_get_contents(realpath($secondPathToFile));
+    $firstFormat = pathinfo($firstPathToFile, PATHINFO_EXTENSION);
+    $secondFormat = pathinfo($secondPathToFile, PATHINFO_EXTENSION);
+    $firstParseData = parse($firstData, $firstFormat);
+    $secondParseData = parse($secondData, $secondFormat);
     $formatter = getFormatter($format);
-    $diffResult = diff($firstData, $secondData);
+    $diffResult = diff($firstParseData, $secondParseData);
     $result = $formatter($diffResult);
     return $result;
-}
-
-
-function getDataFile($filePath)
-{
-    $data = extract($filePath);
-    $format = pathinfo($filePath, PATHINFO_EXTENSION);
-    return render($data, $format);
-}
-
-
-function extract($filePath)
-{
-    return file_get_contents(realpath($filePath));
-}
-
-
-function render($data, $format)
-{
-    switch ($format) {
-        case 'json':
-            return json_decode($data, false);
-        break;
-        case 'yaml':
-            return Yaml::parse($data, Yaml::PARSE_OBJECT_FOR_MAP);
-        break;
-        default:
-            throw new \Exception("Неподдерживаемый формат файла: {$format}", 1);
-    }
 }
 
 

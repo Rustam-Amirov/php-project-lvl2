@@ -2,35 +2,26 @@
 
 namespace Differ\GenDiff\Formatters\Pretty;
 
-const MARK = [
-    'deleted' => '-',
-    'added' => '+',
-    'unchanged' => ' ',
-    'nested' => ' '
-];
-
-
-function pretty()
+function render($diff)
 {
-    return function ($diff) {
-        $res = parse($diff);
-        return "{" . $res . "\n}\n";
-    };
+    $result = iter($diff);
+    return "{" . $result . "\n}\n";
 }
 
 
-function parse($diff, $countTab = '  ')
+function iter($diff, $countTab = '  ')
 {
     $newTree = array_map(function ($v) use ($countTab) {
         if ($v['type'] == 'nested') {
-            $iter = buildNode($countTab, MARK[$v['type']], $v['key'], getValue($v['children'], $countTab));
+            $iter = buildNode($countTab, ' ', $v['key'], getValue($v['children'], $countTab));
         } elseif ($v['type'] === 'changed') {
-            $iter =  buildNode($countTab, '+', $v['key'], getValue($v['newValue'], $countTab));
-            $iter .= buildNode($countTab, '-', $v['key'], getValue($v['oldValue'], $countTab));
+            $iter = buildChangedNode($countTab, $v['key'], $v['newValue'], $v['oldValue']);
         } elseif ($v['type'] === 'added') {
-            $iter = buildNode($countTab, MARK[$v['type']], $v['key'], getValue($v['newValue'], $countTab));
+            $iter = buildNode($countTab, '+', $v['key'], getValue($v['newValue'], $countTab));
+        } elseif ($v['type'] === 'deleted') {
+            $iter = buildNode($countTab, '-', $v['key'], getValue($v['oldValue'], $countTab));
         } else {
-            $iter = buildNode($countTab, MARK[$v['type']], $v['key'], getValue($v['oldValue'], $countTab));
+            $iter = buildNode($countTab, ' ', $v['key'], getValue($v['oldValue'], $countTab));
         }
         return $iter;
     }, $diff);
@@ -38,13 +29,11 @@ function parse($diff, $countTab = '  ')
 }
         
 
-function stringify($value)
+function buildChangedNode($tab, $key, $newValue, $oldValue)
 {
-    if (is_bool($value)) {
-        return $value ? 'true' : 'false';
-    } else {
-        return $value;
-    }
+    $newNode = buildNode($tab, '+', $key, getValue($newValue, $tab));
+    $oldNode = buildNode($tab, '-', $key, getValue($oldValue, $tab));
+    return $newNode . $oldNode;
 }
 
 
@@ -58,16 +47,19 @@ function getValue($tree, $tab = '')
 {
     if (is_array($tree)) {
         $s = array_map(function ($val) use ($tab) {
-            return parse([$val], $tab . '    ');
+            return iter([$val], $tab . '    ');
         }, $tree);
-        return '{' . implode($s) . "\n" . $tab . "  }";
+        $value = '{' . implode($s) . "\n" . $tab . "  }";
+    } elseif (is_object($tree)) {
+        $keys = array_keys(get_object_vars($tree));
+        $s = array_map(function ($key) use ($tree, $tab) {
+            return "{\n " . $tab . '     ' . $key . ': ' . $tree->$key . "\n" . $tab . "  }";
+        }, $keys);
+        $value = implode($s);
+    } elseif (is_bool($tree)) {
+        $value = $tree ? 'true' : 'false';
+    } else {
+        $value = (string)$tree;
     }
-    if (!is_object($tree)) {
-        return stringify($tree);
-    }
-    $keys = array_keys(get_object_vars($tree));
-    $result = array_map(function ($key) use ($tree, $tab) {
-        return stringify("{\n " . $tab . '     ' . $key . ': ' . $tree->$key . "\n" . $tab . "  }");
-    }, $keys);
-    return implode($result);
+    return $value;
 }

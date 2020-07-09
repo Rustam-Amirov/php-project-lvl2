@@ -2,22 +2,25 @@
 
 namespace Differ\Formatters;
 
-use function Differ\GenDiff\Formatters\Pretty\pretty;
-use function Differ\GenDiff\Formatters\Plain\plain;
-use function Differ\GenDiff\Formatters\GetJson\getJson;
+use function Differ\GenDiff\Formatters\Pretty\render as pretty;
+use function Differ\GenDiff\Formatters\Plain\render as plain;
+use function Differ\GenDiff\Formatters\Json\render as json;
 
 function getFormatter($format)
 {
-    switch ($format) {
-        case 'pretty':
-            $fn = pretty();
+    return function ($diff) use ($format) {
+        switch ($format) {
+            case 'pretty':
+                return pretty($diff);
             break;
-        case 'plain':
-            $fn = plain();
+            case 'plain':
+                return plain($diff);
             break;
-        case 'json':
-            $fn = getJson();
+            case 'json':
+                return json($diff);
             break;
-    }
-    return $fn;
+            default:
+                throw new \Exception("Неподдерживаемый формат вывода: {$format}", 1);
+        }
+    };
 }
