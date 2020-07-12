@@ -5,14 +5,14 @@ namespace Differ\GenDiff\Formatters\Plain;
 function render($diff)
 {
     $result = iter($diff);
-    return $result . "\n";
+    return $result;
 }
 
 function iter($diff, $path = '')
 {
     $filterDiff = array_filter($diff, fn($v) => $v['type'] !== 'unchanged');
     $result = array_map(function ($v) use ($path) {
-        $newPath = ($path == '') ? $v['key'] : $path . '.' . $v['key'];
+        $newPath = ($path == '') ? $v['key'] : sprintf("%s.%s", $path, $v['key']);
         if ($v['type'] === 'nested') {
             $iter = iter($v['children'], $newPath);
         } elseif ($v['type'] === 'deleted') {
@@ -20,9 +20,8 @@ function iter($diff, $path = '')
         } elseif ($v['type'] === 'added') {
             $iter = sprintf("Property '%s' was added with value: '%s'", $newPath, stringify($v['newValue']));
         } else {
-            $valueOld = stringify($v['oldValue']);
-            $valueNew = stringify($v['newValue']);
-            $iter = sprintf("Property '%s' was changed. From '%s' to '%s'", $newPath, $valueOld, $valueNew);
+            $value = ['old' => stringify($v['oldValue']), 'new' => stringify($v['newValue'])];
+            $iter = sprintf("Property '%s' was changed. From '%s' to '%s'", $newPath, $value['old'], $value['new']);
         }
         return $iter;
     }, $filterDiff);

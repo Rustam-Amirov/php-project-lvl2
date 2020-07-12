@@ -8,61 +8,28 @@ use function Differ\Gendiff\genDiff;
 
 class GenDiffTest extends TestCase
 {
-    /**
-     * @dataProvider additionalProviderJSON
-     */
-    public function testGendiffJSON($first, $second, $format)
+    public function helper($fileName)
     {
-        $expected = file_get_contents(__DIR__ . "/fixtures/expected.json");
-        $this->assertEquals($expected, genDiff($first, $second, $format));
-    }
-
-    public function additionalProviderJSON()
-    {
-        return [["tests/fixtures/before1.json", "tests/fixtures/after1.json", 'json']];
+        return file_get_contents(__DIR__ . "/fixtures/$fileName");
     }
 
 
     /**
-     * @dataProvider additionalProviderPlain
+     * @dataProvider additionalProvider
      */
-    public function testGendiffPlain($first, $second, $format)
+    public function testGendiff($expected, $first, $second, $format)
     {
-        $expected = file_get_contents(__DIR__ . "/fixtures/expected2.txt");
         $this->assertEquals($expected, genDiff($first, $second, $format));
     }
 
-    public function additionalProviderPlain()
-    {
-        return [["tests/fixtures/before1.json", "tests/fixtures/after1.json", 'plain']];
-    }
 
-
-    /**
-     * @dataProvider additionalProviderPretty
-     */
-    public function testGendiffPretty($first, $second, $format)
+    public function additionalProvider()
     {
-        $expected = file_get_contents(__DIR__ . "/fixtures/expected1.txt");
-        $this->assertEquals($expected, genDiff($first, $second, $format));
-    }
-
-    public function additionalProviderPretty()
-    {
-        return [["tests/fixtures/before1.json", "tests/fixtures/after1.json", 'pretty']];
-    }
-
-    /**
-     * @dataProvider additionalProviderYaml
-     */
-    public function testGendiffYaml($first, $second, $format)
-    {
-        $expected = file_get_contents(__DIR__ . "/fixtures/expected3.txt");
-        $this->assertEquals($expected, genDiff($first, $second, $format));
-    }
-
-    public function additionalProviderYaml()
-    {
-        return [["tests/fixtures/before.yaml", "tests/fixtures/after.yaml", 'pretty']];
+        return [
+            [$this->helper('expected.json'), "tests/fixtures/before.json", "tests/fixtures/after.json", 'json'],
+            [$this->helper('expected2.txt'), "tests/fixtures/before.json", "tests/fixtures/after.json", 'plain'],
+            [$this->helper('expected1.txt'), "tests/fixtures/before.json", "tests/fixtures/after.json", 'pretty'],
+            [$this->helper('expected1.txt'), "tests/fixtures/before.yaml", "tests/fixtures/after.yaml", 'pretty']
+        ];
     }
 }

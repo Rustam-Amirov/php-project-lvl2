@@ -12,13 +12,10 @@ function getFormatter($format)
         switch ($format) {
             case 'pretty':
                 return pretty($diff);
-            break;
             case 'plain':
                 return plain($diff);
-            break;
             case 'json':
                 return json($diff);
-            break;
             default:
                 throw new \Exception("Неподдерживаемый формат вывода: {$format}", 1);
         }
