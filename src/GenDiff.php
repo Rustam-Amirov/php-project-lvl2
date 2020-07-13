@@ -3,7 +3,7 @@
 namespace Differ\GenDiff;
 
 use function Funct\Collection\union;
-use function Differ\Formatters\getFormatter;
+use function Differ\Gendiff\Formatters\getFormatter;
 use function Differ\Parsers\parse;
 
 function genDiff($firstPathToFile, $secondPathToFile, $format = 'pretty')

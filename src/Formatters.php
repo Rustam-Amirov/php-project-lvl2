@@ -1,21 +1,17 @@
 <?php
 
-namespace Differ\Formatters;
-
-use function Differ\GenDiff\Formatters\Pretty\render as pretty;
-use function Differ\GenDiff\Formatters\Plain\render as plain;
-use function Differ\GenDiff\Formatters\Json\render as json;
+namespace Differ\Gendiff\Formatters;
 
 function getFormatter($format)
 {
     return function ($diff) use ($format) {
         switch ($format) {
             case 'pretty':
-                return pretty($diff);
+                return  Pretty\render($diff);
             case 'plain':
-                return plain($diff);
+                return Plain\render($diff);
             case 'json':
-                return json($diff);
+                return Json\render($diff);
             default:
                 throw new \Exception("Неподдерживаемый формат вывода: {$format}", 1);
         }
