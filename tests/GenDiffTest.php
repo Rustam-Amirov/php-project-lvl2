@@ -11,19 +11,22 @@ class GenDiffTest extends TestCase
     /**
      * @dataProvider additionalProvider
      */
-    public function testGendiff($expected, $first, $second, $format)
+    public function testGendiff($expectedFile, $firstFileName, $secondFileName, $format)
     {
-        $this->assertEquals($expected, genDiff($first, $second, $format));
+        $expected = getDatafile($expectedFile);
+        $firstPath = "tests/fixtures/".$firstFileName;
+        $secondPath = "tests/fixtures/".$secondFileName;
+        $this->assertEquals($expected, genDiff($firstPath, $secondPath, $format));
     }
 
 
     public function additionalProvider()
     {
         return [
-            [getDatafile('expected.json'), "tests/fixtures/before.json", "tests/fixtures/after.json", 'json'],
-            [getDatafile('expected2.txt'), "tests/fixtures/before.json", "tests/fixtures/after.json", 'plain'],
-            [getDatafile('expected1.txt'), "tests/fixtures/before.json", "tests/fixtures/after.json", 'pretty'],
-            [getDatafile('expected1.txt'), "tests/fixtures/before.yaml", "tests/fixtures/after.yaml", 'pretty']
+            ['expected.json', "before.json", "after.json", 'json'],
+            ['expected2.txt', "before.json", "after.json", 'plain'],
+            ['expected1.txt', "before.json", "after.json", 'pretty'],
+            ['expected1.txt', "before.yaml", "after.yaml", 'pretty']
         ];
     }
 }
