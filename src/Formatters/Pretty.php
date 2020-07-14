@@ -12,20 +12,20 @@ function render($diff)
 function iter($diff, $level = 1)
 {
     $newTree = array_map(function ($v) use ($level) {
-        $tab = str_repeat(' ', $level * 4 - 2);
+        $indent = str_repeat(' ', $level * 4 - 2);
         if ($v['type'] === 'nested') {
-            $children = sprintf("{\n%s\n  %s}", iter($v['children'], $level + 1), $tab);
-            $iter = bringNodeToString($tab, ' ', $v['key'], stringify($children, $tab));
+            $children = sprintf("{\n%s\n  %s}", iter($v['children'], $level + 1), $indent);
+            $iter = bringNodeToString($indent, ' ', $v['key'], stringify($children, $indent));
         } elseif ($v['type'] === 'changed') {
-            $newNode = bringNodeToString($tab, '+', $v['key'], stringify($v['newValue'], $tab));
-            $oldNode = bringNodeToString($tab, '-', $v['key'], stringify($v['oldValue'], $tab));
+            $newNode = bringNodeToString($indent, '+', $v['key'], stringify($v['newValue'], $indent));
+            $oldNode = bringNodeToString($indent, '-', $v['key'], stringify($v['oldValue'], $indent));
             $iter = $newNode . "\n" . $oldNode;
         } elseif ($v['type'] === 'added') {
-            $iter = bringNodeToString($tab, '+', $v['key'], stringify($v['newValue'], $tab));
+            $iter = bringNodeToString($indent, '+', $v['key'], stringify($v['newValue'], $indent));
         } elseif ($v['type'] === 'deleted') {
-            $iter = bringNodeToString($tab, '-', $v['key'], stringify($v['oldValue'], $tab));
+            $iter = bringNodeToString($indent, '-', $v['key'], stringify($v['oldValue'], $indent));
         } else {
-            $iter = bringNodeToString($tab, ' ', $v['key'], stringify($v['oldValue'], $tab));
+            $iter = bringNodeToString($indent, ' ', $v['key'], stringify($v['oldValue'], $indent));
         }
         return $iter;
     }, $diff);
@@ -33,13 +33,13 @@ function iter($diff, $level = 1)
 }
         
 
-function bringNodeToString($tab, $type, $key, $value)
+function bringNodeToString($indent, $type, $key, $value)
 {
-    return sprintf("%s%s %s: %s", $tab, $type, $key, $value);
+    return sprintf("%s%s %s: %s", $indent, $type, $key, $value);
 }
 
 
-function stringify($tree, $tab = '')
+function stringify($tree, $indent = '')
 {
     if (is_bool($tree)) {
         return $tree ? 'true' : 'false';
@@ -48,15 +48,15 @@ function stringify($tree, $tab = '')
         return (string)$tree;
     }
     if (is_array($tree)) {
-        $values = array_map(function ($val) use ($tab) {
+        $values = array_map(function ($val) use ($indent) {
             return implode($val);
         }, $tree);
-        return  "{{implode($values)},\n $tab }";
+        return  "{{implode($values)},\n $indent }";
     }
     if (is_object($tree)) {
         $keys = array_keys(get_object_vars($tree));
-        $values = array_map(function ($key) use ($tree, $tab) {
-            return sprintf("{\n %s     %s: %s\n%s  }", $tab, $key, $tree->$key, $tab);
+        $values = array_map(function ($key) use ($tree, $indent) {
+            return sprintf("{\n %s     %s: %s\n%s  }", $indent, $key, $tree->$key, $indent);
         }, $keys);
         return implode($values);
     }
