@@ -5,62 +5,59 @@ namespace Differ\GenDiff\Formatters\Pretty;
 function render($diff)
 {
     $result = iter($diff);
-    return sprintf("{%s\n}", $result);
+    return sprintf("{\n%s\n}", $result);
 }
 
 
-function iter($diff, $countTab = '  ')
+function iter($diff, $level = 2)
 {
-    $newTree = array_map(function ($v) use ($countTab) {
+    $newTree = array_map(function ($v) use ($level) {
+        $tab = str_repeat(' ', $level);
         if ($v['type'] === 'nested') {
-            $children = sprintf("{%s\n  %s}", iter($v['children'], $countTab . '    '), $countTab);
-            $iter = buildNode($countTab, ' ', $v['key'], stringify($children, $countTab));
+            $children = sprintf("{\n%s\n  %s}", iter($v['children'], $level + 4), $tab);
+            $iter = bringNodeToString($tab, ' ', $v['key'], stringify($children, $tab));
         } elseif ($v['type'] === 'changed') {
-            $iter = buildChangedNode($countTab, $v['key'], $v['newValue'], $v['oldValue']);
+            $newNode = bringNodeToString($tab, '+', $v['key'], stringify($v['newValue'], $tab));
+            $oldNode = bringNodeToString($tab, '-', $v['key'], stringify($v['oldValue'], $tab));
+            $iter = $newNode . "\n" . $oldNode;
         } elseif ($v['type'] === 'added') {
-            $iter = buildNode($countTab, '+', $v['key'], stringify($v['newValue'], $countTab));
+            $iter = bringNodeToString($tab, '+', $v['key'], stringify($v['newValue'], $tab));
         } elseif ($v['type'] === 'deleted') {
-            $iter = buildNode($countTab, '-', $v['key'], stringify($v['oldValue'], $countTab));
+            $iter = bringNodeToString($tab, '-', $v['key'], stringify($v['oldValue'], $tab));
         } else {
-            $iter = buildNode($countTab, ' ', $v['key'], stringify($v['oldValue'], $countTab));
+            $iter = bringNodeToString($tab, ' ', $v['key'], stringify($v['oldValue'], $tab));
         }
         return $iter;
     }, $diff);
-    return implode($newTree);
+    return implode("\n", $newTree);
 }
         
 
-function buildChangedNode($tab, $key, $newValue, $oldValue)
+function bringNodeToString($tab, $type, $key, $value)
 {
-    $newNode = buildNode($tab, '+', $key, stringify($newValue, $tab));
-    $oldNode = buildNode($tab, '-', $key, stringify($oldValue, $tab));
-    return $newNode . $oldNode;
-}
-
-
-function buildNode($tab, $type, $key, $value)
-{
-    return "\n" . $tab . $type . ' ' . $key . ': ' . $value;
+    return sprintf("%s%s %s: %s", $tab, $type, $key, $value);
 }
 
 
 function stringify($tree, $tab = '')
 {
-    if (is_array($tree)) {
-        $s = array_map(function ($val) use ($tab) {
-            return implode($val);
-        }, $tree);
-        return  sprintf("{%s \n %s }", implode($s), $tab);
-    }
-    if (is_object($tree)) {
-        $keys = array_keys(get_object_vars($tree));
-        $s = array_map(function ($key) use ($tree, $tab) {
-            return sprintf("{\n %s     %s: %s\n%s  }", $tab, $key, $tree->$key, $tab);
-        }, $keys);
-        return implode($s);
-    }
     if (is_bool($tree)) {
         return $tree ? 'true' : 'false';
     }
-    return (string)$tree;
+    if (!is_array($tree) && !is_object($tree)) {
+        return (string)$tree;
+    }
+    if (is_array($tree)) {
+        $values = array_map(function ($val) use ($tab) {
+            return implode($val);
+        }, $tree);
+        return  "{{implode($values)},\n $tab }";
+    }
+    if (is_object($tree)) {
+        $keys = array_keys(get_object_vars($tree));
+        $values = array_map(function ($key) use ($tree, $tab) {
+            return sprintf("{\n %s     %s: %s\n%s  }", $tab, $key, $tree->$key, $tab);
+        }, $keys);
+        return implode($values);
+    }
 }

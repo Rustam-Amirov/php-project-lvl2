@@ -8,12 +8,6 @@ use function Differ\Gendiff\genDiff;
 
 class GenDiffTest extends TestCase
 {
-    public function helper($fileName)
-    {
-        return file_get_contents(__DIR__ . "/fixtures/$fileName");
-    }
-
-
     /**
      * @dataProvider additionalProvider
      */
@@ -26,10 +20,15 @@ class GenDiffTest extends TestCase
     public function additionalProvider()
     {
         return [
-            [$this->helper('expected.json'), "tests/fixtures/before.json", "tests/fixtures/after.json", 'json'],
-            [$this->helper('expected2.txt'), "tests/fixtures/before.json", "tests/fixtures/after.json", 'plain'],
-            [$this->helper('expected1.txt'), "tests/fixtures/before.json", "tests/fixtures/after.json", 'pretty'],
-            [$this->helper('expected1.txt'), "tests/fixtures/before.yaml", "tests/fixtures/after.yaml", 'pretty']
+            [getDatafile('expected.json'), "tests/fixtures/before.json", "tests/fixtures/after.json", 'json'],
+            [getDatafile('expected2.txt'), "tests/fixtures/before.json", "tests/fixtures/after.json", 'plain'],
+            [getDatafile('expected1.txt'), "tests/fixtures/before.json", "tests/fixtures/after.json", 'pretty'],
+            [getDatafile('expected1.txt'), "tests/fixtures/before.yaml", "tests/fixtures/after.yaml", 'pretty']
         ];
     }
+}
+
+function getDatafile($fileName)
+{
+    return file_get_contents("tests/fixtures/$fileName");
 }
