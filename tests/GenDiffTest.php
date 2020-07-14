@@ -14,8 +14,8 @@ class GenDiffTest extends TestCase
     public function testGendiff($expectedFile, $firstFileName, $secondFileName, $format)
     {
         $expected = getDatafile($expectedFile);
-        $firstPath = "tests/fixtures/".$firstFileName;
-        $secondPath = "tests/fixtures/".$secondFileName;
+        $firstPath = "tests/fixtures/" . $firstFileName;
+        $secondPath = "tests/fixtures/" . $secondFileName;
         $this->assertEquals($expected, genDiff($firstPath, $secondPath, $format));
     }
 
