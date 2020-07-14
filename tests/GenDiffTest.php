@@ -13,9 +13,9 @@ class GenDiffTest extends TestCase
      */
     public function testGendiff($expectedFile, $firstFileName, $secondFileName, $format)
     {
-        $expected = getDatafile($expectedFile);
-        $firstPath = "tests/fixtures/" . $firstFileName;
-        $secondPath = "tests/fixtures/" . $secondFileName;
+        $expected = file_get_contents(getFilePath($expectedFile));
+        $firstPath = getFilePath($firstFileName);
+        $secondPath = getFilePath($secondFileName);
         $this->assertEquals($expected, genDiff($firstPath, $secondPath, $format));
     }
 
@@ -31,7 +31,7 @@ class GenDiffTest extends TestCase
     }
 }
 
-function getDatafile($fileName)
+function getFilePath($fileName)
 {
-    return file_get_contents("tests/fixtures/$fileName");
+    return "tests/fixtures/$fileName";
 }

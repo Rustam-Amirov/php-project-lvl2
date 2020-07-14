@@ -9,12 +9,12 @@ function render($diff)
 }
 
 
-function iter($diff, $level = 2)
+function iter($diff, $level = 1)
 {
     $newTree = array_map(function ($v) use ($level) {
-        $tab = str_repeat(' ', $level);
+        $tab = str_repeat(' ', $level * 4 - 2);
         if ($v['type'] === 'nested') {
-            $children = sprintf("{\n%s\n  %s}", iter($v['children'], $level + 4), $tab);
+            $children = sprintf("{\n%s\n  %s}", iter($v['children'], $level + 1), $tab);
             $iter = bringNodeToString($tab, ' ', $v['key'], stringify($children, $tab));
         } elseif ($v['type'] === 'changed') {
             $newNode = bringNodeToString($tab, '+', $v['key'], stringify($v['newValue'], $tab));
