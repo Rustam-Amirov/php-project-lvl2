@@ -20,9 +20,11 @@ function iter($diff, $path = '')
                 return sprintf("Property '%s' was removed", $newPath);
             case 'added':
                 return  sprintf("Property '%s' was added with value: '%s'", $newPath, stringify($v['newValue']));
-            default:
+            case 'changed':
                 $value = ['old' => stringify($v['oldValue']), 'new' => stringify($v['newValue'])];
                 return  sprintf("Property '%s' was changed. From '%s' to '%s'", $newPath, $value['old'], $value['new']);
+            default:
+                throw new \Exception("Unknown state in" . __DIR__ . "/Plain.php/iter()", 1);
         }
     }, $filterDiff);
     return implode("\n", $result);

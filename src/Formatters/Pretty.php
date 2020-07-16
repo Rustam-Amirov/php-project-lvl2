@@ -25,8 +25,10 @@ function iter($diff, $level = 1)
                 return bringNodeToString($indent, '+', $v['key'], stringify($v['newValue'], $indent));
             case 'deleted':
                 return bringNodeToString($indent, '-', $v['key'], stringify($v['oldValue'], $indent));
-            default:
+            case 'unchanged':
                 return bringNodeToString($indent, ' ', $v['key'], stringify($v['oldValue'], $indent));
+            default:
+                throw new \Exception("Unknown state in" . __DIR__ . "/Pretty/iter()", 1);
         }
     }, $diff);
     return implode("\n", $newTree);
