@@ -18,12 +18,12 @@ function iter($diff, $path = '')
                 return iter($v['children'], $newPath);
             case 'deleted':
                 return sprintf("Property '%s' was removed", $newPath);
-            case 'added': 
+            case 'added':
                 return  sprintf("Property '%s' was added with value: '%s'", $newPath, stringify($v['newValue']));
             default:
                 $value = ['old' => stringify($v['oldValue']), 'new' => stringify($v['newValue'])];
                 return  sprintf("Property '%s' was changed. From '%s' to '%s'", $newPath, $value['old'], $value['new']);
-            }
+        }
     }, $filterDiff);
     return implode("\n", $result);
 }
