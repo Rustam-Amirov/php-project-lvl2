@@ -28,7 +28,7 @@ function iter($diff, $level = 1)
             case 'unchanged':
                 return bringNodeToString($indent, ' ', $v['key'], stringify($v['oldValue'], $indent));
             default:
-                throw new \Exception("Unknown state in" . __DIR__ . "/Pretty/iter()", 1);
+                throw new \Exception("Unknown state in", 1);
         }
     }, $diff);
     return implode("\n", $newTree);
