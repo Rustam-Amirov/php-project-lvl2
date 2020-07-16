@@ -13,21 +13,21 @@ function iter($diff, $level = 1)
 {
     $newTree = array_map(function ($v) use ($level) {
         $indent = str_repeat(' ', $level * 4 - 2);
-        if ($v['type'] === 'nested') {
-            $children = sprintf("{\n%s\n  %s}", iter($v['children'], $level + 1), $indent);
-            $iter = bringNodeToString($indent, ' ', $v['key'], stringify($children, $indent));
-        } elseif ($v['type'] === 'changed') {
-            $newNode = bringNodeToString($indent, '+', $v['key'], stringify($v['newValue'], $indent));
-            $oldNode = bringNodeToString($indent, '-', $v['key'], stringify($v['oldValue'], $indent));
-            $iter = $newNode . "\n" . $oldNode;
-        } elseif ($v['type'] === 'added') {
-            $iter = bringNodeToString($indent, '+', $v['key'], stringify($v['newValue'], $indent));
-        } elseif ($v['type'] === 'deleted') {
-            $iter = bringNodeToString($indent, '-', $v['key'], stringify($v['oldValue'], $indent));
-        } else {
-            $iter = bringNodeToString($indent, ' ', $v['key'], stringify($v['oldValue'], $indent));
+        switch ($v['type']) {
+            case 'nested':
+                $children = sprintf("{\n%s\n  %s}", iter($v['children'], $level + 1), $indent);
+                return bringNodeToString($indent, ' ', $v['key'], stringify($children, $indent));
+            case 'changed':
+                $newNode = bringNodeToString($indent, '+', $v['key'], stringify($v['newValue'], $indent));
+                $oldNode = bringNodeToString($indent, '-', $v['key'], stringify($v['oldValue'], $indent));
+                return $newNode . "\n" . $oldNode;
+            case 'added':
+                return bringNodeToString($indent, '+', $v['key'], stringify($v['newValue'], $indent));
+            case 'deleted':
+                return bringNodeToString($indent, '-', $v['key'], stringify($v['oldValue'], $indent));
+            default:
+                return bringNodeToString($indent, ' ', $v['key'], stringify($v['oldValue'], $indent));
         }
-        return $iter;
     }, $diff);
     return implode("\n", $newTree);
 }

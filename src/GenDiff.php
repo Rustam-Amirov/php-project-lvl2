@@ -14,14 +14,14 @@ function genDiff($firstPathToFile, $secondPathToFile, $format = 'pretty')
     $secondFormat = pathinfo($secondPathToFile, PATHINFO_EXTENSION);
     $firstParseData = parse($firstData, $firstFormat);
     $secondParseData = parse($secondData, $secondFormat);
-    $formatter = getFormatter($format);
-    $diffResult = diff($firstParseData, $secondParseData);
-    $result = $formatter($diffResult);
+    $makeFormat = getFormatter($format);
+    $diffResult = makeDiff($firstParseData, $secondParseData);
+    $result = $makeFormat($diffResult);
     return $result;
 }
 
 
-function diff($tree1, $tree2)
+function makeDiff($tree1, $tree2)
 {
     $keys = union(array_keys(get_object_vars($tree1)), array_keys(get_object_vars($tree2)));
     return  array_map(function ($key) use ($tree1, $tree2) {
@@ -31,7 +31,7 @@ function diff($tree1, $tree2)
             $iter = buildNode($key, 'added', null, $tree2->$key);
         } else {
             if (is_object($tree1->$key) && is_object($tree2->$key)) {
-                $iter = buildNode($key, 'nested', $tree1->$key, $tree2->$key, diff($tree1->$key, $tree2->$key));
+                $iter = buildNode($key, 'nested', $tree1->$key, $tree2->$key, makeDiff($tree1->$key, $tree2->$key));
             } elseif ($tree1->$key === $tree2->$key) {
                 $iter = buildNode($key, 'unchanged', $tree1->$key, $tree2->$key);
             } else {

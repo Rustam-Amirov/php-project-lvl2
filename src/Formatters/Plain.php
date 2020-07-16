@@ -13,17 +13,17 @@ function iter($diff, $path = '')
     $filterDiff = array_filter($diff, fn($v) => $v['type'] !== 'unchanged');
     $result = array_map(function ($v) use ($path) {
         $newPath = ($path == '') ? $v['key'] : sprintf("%s.%s", $path, $v['key']);
-        if ($v['type'] === 'nested') {
-            $iter = iter($v['children'], $newPath);
-        } elseif ($v['type'] === 'deleted') {
-            $iter = sprintf("Property '%s' was removed", $newPath);
-        } elseif ($v['type'] === 'added') {
-            $iter = sprintf("Property '%s' was added with value: '%s'", $newPath, stringify($v['newValue']));
-        } else {
-            $value = ['old' => stringify($v['oldValue']), 'new' => stringify($v['newValue'])];
-            $iter = sprintf("Property '%s' was changed. From '%s' to '%s'", $newPath, $value['old'], $value['new']);
-        }
-        return $iter;
+        switch ($v['type']) {
+            case 'nested':
+                return iter($v['children'], $newPath);
+            case 'deleted':
+                return sprintf("Property '%s' was removed", $newPath);
+            case 'added': 
+                return  sprintf("Property '%s' was added with value: '%s'", $newPath, stringify($v['newValue']));
+            default:
+                $value = ['old' => stringify($v['oldValue']), 'new' => stringify($v['newValue'])];
+                return  sprintf("Property '%s' was changed. From '%s' to '%s'", $newPath, $value['old'], $value['new']);
+            }
     }, $filterDiff);
     return implode("\n", $result);
 }

@@ -26,6 +26,6 @@ Options:
   --format <fmt>                Report format [default: pretty]
 DOC;
 
-$request = \Docopt::handle($doc, ['version' => 'v1.0.4']);
+$request = \Docopt::handle($doc, ['version' => 'v1.0.5']);
 $result = genDiff($request['<firstFile>'], $request['<secondFile>'], $request['--format']);
 echo($result."\n");

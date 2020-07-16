@@ -13,6 +13,6 @@ function parse($data, $format)
         case 'yml':
             return Yaml::parse($data, Yaml::PARSE_OBJECT_FOR_MAP);
         default:
-            throw new \Exception("Неподдерживаемый формат файла: {$format}", 1);
+            throw new \Exception("Unsupported file format: {$format}", 1);
     }
 }

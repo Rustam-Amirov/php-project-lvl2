@@ -24,9 +24,9 @@ class GenDiffTest extends TestCase
     {
         return [
             ['expected.json', "before.json", "after.json", 'json'],
-            ['expected2.txt', "before.json", "after.json", 'plain'],
-            ['expected1.txt', "before.json", "after.json", 'pretty'],
-            ['expected1.txt', "before.yaml", "after.yaml", 'pretty']
+            ['expected.plain.txt', "before.json", "after.json", 'plain'],
+            ['expected.pretty.txt', "before.json", "after.json", 'pretty'],
+            ['expected.pretty.txt', "before.yaml", "after.yaml", 'pretty']
         ];
     }
 }

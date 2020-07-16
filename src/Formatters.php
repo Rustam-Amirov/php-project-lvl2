@@ -13,7 +13,7 @@ function getFormatter($format)
             case 'json':
                 return Json\render($diff);
             default:
-                throw new \Exception("Неподдерживаемый формат вывода: {$format}", 1);
+                throw new \Exception("Unsupported output format: {$format}", 1);
         }
     };
 }
