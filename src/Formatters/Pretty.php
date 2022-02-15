@@ -33,7 +33,7 @@ function iter($diff, $level = 1)
     }, $diff);
     return implode("\n", $newTree);
 }
-        
+
 
 function bringNodeToString($indent, $type, $key, $value)
 {
